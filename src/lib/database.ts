@@ -12,12 +12,11 @@ class Database {
 
   private async init() {
     if (this.initialized) return;
-    
-    const run = promisify(this.db.run.bind(this.db));
+    this.initialized = true;
     
     try {
       // Create users table
-      await run(`
+      await this.run(`
         CREATE TABLE IF NOT EXISTS users (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           email TEXT UNIQUE NOT NULL,
@@ -28,7 +27,7 @@ class Database {
       `);
 
       // Create products table
-      await run(`
+      await this.run(`
         CREATE TABLE IF NOT EXISTS products (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           name TEXT NOT NULL,
@@ -42,7 +41,7 @@ class Database {
       `);
 
       // Create cart table
-      await run(`
+      await this.run(`
         CREATE TABLE IF NOT EXISTS cart (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           user_id INTEGER NOT NULL,
@@ -71,7 +70,7 @@ class Database {
 
   private async insertSampleData() {
     const get = promisify(this.db.get.bind(this.db));
-    const run = promisify(this.db.run.bind(this.db));
+
 
     // Check if products already exist
     const existingProduct = await get('SELECT id FROM products LIMIT 1');
@@ -129,34 +128,34 @@ class Database {
     ];
 
     for (const product of sampleProducts) {
-      await run(
+      await this.run(
         'INSERT INTO products (name, description, price, category, image_url, stock) VALUES (?, ?, ?, ?, ?, ?)',
         [product.name, product.description, product.price, product.category, product.image_url, product.stock]
       );
     }
   }
 
-  async query(sql: string, params: any[] = []): Promise<any> {
+  async query<T = Record<string, unknown>>(sql: string, params: unknown[] = []): Promise<T[]> {
     await this.ensureInitialized();
     return new Promise((resolve, reject) => {
       this.db.all(sql, params, (err, rows) => {
         if (err) reject(err);
-        else resolve(rows);
+        else resolve(rows as T[]);
       });
     });
   }
 
-  async get(sql: string, params: any[] = []): Promise<any> {
+  async get<T = Record<string, unknown>>(sql: string, params: unknown[] = []): Promise<T | null> {
     await this.ensureInitialized();
     return new Promise((resolve, reject) => {
       this.db.get(sql, params, (err, row) => {
         if (err) reject(err);
-        else resolve(row);
+        else resolve(row as T | null);
       });
     });
   }
 
-  async run(sql: string, params: any[] = []): Promise<any> {
+  async run(sql: string, params: unknown[] = []): Promise<{ id: number; changes: number }> {
     await this.ensureInitialized();
     return new Promise((resolve, reject) => {
       this.db.run(sql, params, function(err) {

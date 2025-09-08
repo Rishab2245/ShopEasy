@@ -3,6 +3,13 @@ import bcrypt from 'bcryptjs';
 import { db } from '@/lib/database';
 import { signToken } from '@/lib/jwt';
 
+interface User {
+  id: number;
+  email: string;
+  password: string;
+  name: string;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { email, password } = await request.json();
@@ -15,7 +22,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find user
-    const user = await db.get(
+    const user = await db.get<User>(
       'SELECT id, email, password, name FROM users WHERE email = ?',
       [email]
     );

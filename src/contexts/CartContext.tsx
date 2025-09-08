@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 
 interface CartItem {
@@ -35,7 +35,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(false);
   const { token, user } = useAuth();
 
-  const refreshCart = async () => {
+  const refreshCart = useCallback(async () => {
     if (!token) {
       setCartItems([]);
       setTotalAmount(0);
@@ -62,11 +62,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token, setCartItems, setTotalAmount, setItemCount, setLoading]);
 
   useEffect(() => {
     refreshCart();
-  }, [token, user]);
+  }, [token, user, refreshCart]);
 
   const addToCart = async (productId: number, quantity: number = 1): Promise<boolean> => {
     if (!token) return false;

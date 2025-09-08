@@ -4,7 +4,7 @@ import { getTokenFromRequest, verifyToken } from '@/lib/jwt';
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const token = getTokenFromRequest(request);
@@ -24,7 +24,7 @@ export async function PUT(
     }
 
     const { quantity } = await request.json();
-    const cartId = await params.id;
+    const { id: cartId } = await context.params;
 
     if (!quantity || quantity < 1) {
       return NextResponse.json(
@@ -65,7 +65,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const token = getTokenFromRequest(request);
@@ -84,7 +84,7 @@ export async function DELETE(
       );
     }
 
-    const cartId = await params.id;
+    const { id: cartId } = await context.params;
 
     // Verify cart item belongs to user
     const cartItem = await db.get(

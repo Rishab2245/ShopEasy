@@ -74,7 +74,7 @@ export default function LoginPage() {
                   Welcome Back!
                 </h2>
                 <p className="text-lg text-slate-600 leading-relaxed">
-                  We've missed you! Sign in to access your account and continue enjoying our premium services.
+                  We&apos;ve missed you! Sign in to access your account and continue enjoying our premium services.
                 </p>
               </div>
 
@@ -128,7 +128,7 @@ export default function LoginPage() {
                   Sign In to Your Account
                 </h2>
                 <p className="text-slate-600">
-                  Don't have an account?{' '}
+                  Don&apos;t have an account?{' '}
                   <Link
                     href="/signup"
                     className="font-semibold text-indigo-600 hover:text-indigo-500 transition-colors"

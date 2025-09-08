@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
-import { Search, Filter, ShoppingCart, Star } from 'lucide-react';
+import { Search, ShoppingCart } from 'lucide-react';
+import Image from 'next/image';
 
 interface Product {
   id: number;
@@ -27,34 +28,7 @@ export default function HomePage() {
   const { user } = useAuth();
   const { addToCart } = useCart();
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  useEffect(() => {
-    filterProducts();
-  }, [products, searchTerm, selectedCategory, priceRange]);
-
-  const fetchProducts = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/products');
-      const data = await response.json();
-      
-      if (response.ok) {
-        setProducts(data.products);
-        // Extract unique categories
-        const uniqueCategories = [...new Set(data.products.map((p: Product) => p.category))];
-        setCategories(uniqueCategories);
-      }
-    } catch (error) {
-      console.error('Error fetching products:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filterProducts = () => {
+  const filterProducts = useCallback(() => {
     let filtered = products;
 
     // Search filter
@@ -79,6 +53,33 @@ export default function HomePage() {
     }
 
     setFilteredProducts(filtered);
+  }, [products, searchTerm, selectedCategory, priceRange]);
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  useEffect(() => {
+    filterProducts();
+  }, [products, searchTerm, selectedCategory, priceRange, filterProducts]);
+
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/products');
+      const data = await response.json();
+      
+      if (response.ok) {
+        setProducts(data.products);
+        // Extract unique categories
+        const uniqueCategories = Array.from(new Set(data.products.map((p: Product) => p.category))) as string[];
+        setCategories(uniqueCategories);
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleAddToCart = async (productId: number) => {
@@ -184,9 +185,11 @@ export default function HomePage() {
         {filteredProducts.map(product => (
           <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-200">
             <div className="aspect-w-1 aspect-h-1 w-full overflow-hidden bg-gray-200">
-              <img
+              <Image
                 src={product.image_url || '/placeholder-image.jpg'}
                 alt={product.name}
+                width={400}
+                height={300}
                 className="w-full h-48 object-cover object-center group-hover:opacity-75"
               />
             </div>

@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search');
 
     let query = 'SELECT * FROM products WHERE 1=1';
-    const params: any[] = [];
+    const params: (string | number)[] = [];
 
     if (category && category !== 'all') {
       query += ' AND category = ?';

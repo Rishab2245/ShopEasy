@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
-import { Search, Filter, ShoppingCart, Star, Heart, Eye, Grid3X3, List, CheckCircle, X, AlertCircle } from 'lucide-react';
+import { Search, ShoppingCart, Heart, Eye, Grid3X3, List, CheckCircle, X, AlertCircle, Star } from 'lucide-react';
 import Image from 'next/image';
 
 interface Product {
@@ -179,35 +179,10 @@ export default function HomePage() {
   const { user } = useAuth();
   const { addToCart } = useCart();
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  useEffect(() => {
-    filterProducts();
-  }, [products, searchTerm, selectedCategory, priceRange, sortBy]);
-
-  const fetchProducts = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/products');
-      const data = await response.json();
-      
-      if (response.ok) {
-        setProducts(data.products);
-        const uniqueCategories = [...new Set(data.products.map((p: Product) => p.category))];
-        setCategories(uniqueCategories);
-      }
-    } catch (error) {
-      console.error('Error fetching products:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filterProducts = () => {
+  const filterProducts = useCallback(() => {
     let filtered = products;
 
+    // Search filter
     if (searchTerm) {
       filtered = filtered.filter(product =>
         product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -215,6 +190,7 @@ export default function HomePage() {
       );
     }
 
+    // Category filter
     if (selectedCategory !== 'all') {
       filtered = filtered.filter(product => product.category === selectedCategory);
     }
@@ -243,7 +219,35 @@ export default function HomePage() {
     });
 
     setFilteredProducts(filtered);
+  }, [products, searchTerm, selectedCategory, priceRange, sortBy]);
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  useEffect(() => {
+    filterProducts();
+  }, [filterProducts]);
+
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/products');
+      const data = await response.json();
+      
+      if (response.ok) {
+        setProducts(data.products);
+        const uniqueCategories = Array.from(new Set(data.products.map((p: Product) => p.category))) as string[];
+        setCategories(uniqueCategories);
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+
 
   const handleAddToCart = async (productId: number) => {
     if (!user) {

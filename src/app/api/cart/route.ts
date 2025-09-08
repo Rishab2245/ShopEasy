@@ -2,6 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/database';
 import { getTokenFromRequest, verifyToken } from '@/lib/jwt';
 
+interface CartItem {
+  cart_id: number;
+  total_price: number;
+  quantity: number;
+  product_id: number;
+  name: string;
+  price: number;
+  image_url: string;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const token = getTokenFromRequest(request);
@@ -20,7 +30,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const cartItems = await db.query(`
+    const cartItems = await db.query<CartItem>(`
       SELECT 
         c.id as cart_id,
         c.quantity,
@@ -37,7 +47,7 @@ export async function GET(request: NextRequest) {
       ORDER BY c.created_at DESC
     `, [payload.userId]);
 
-    const totalAmount = cartItems.reduce((sum: number, item: any) => sum + item.total_price, 0);
+    const totalAmount = (cartItems as CartItem[]).reduce((sum: number, item: CartItem) => sum + item.total_price, 0);
 
     return NextResponse.json({
       cartItems,
