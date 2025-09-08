@@ -6,7 +6,15 @@ class Database {
   private initialized: boolean = false;
 
   constructor() {
-    this.db = new sqlite3.Database('./ecommerce.db');
+    const dbPath = process.env.NODE_ENV === 'production' 
+      ? '/tmp/ecommerce.db'  // Use /tmp in production
+      : './ecommerce.db';    // Use local path in development
+    
+    this.db = new sqlite3.Database(dbPath, (err) => {
+      if (err) {
+        console.error('Database connection error:', err);
+      }
+    });
     this.init();
   }
 

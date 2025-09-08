@@ -5,7 +5,19 @@ import { signToken } from '@/lib/jwt';
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password, name } = await request.json();
+    const data = await request.json().catch(err => {
+      console.error('JSON parse error:', err);
+      return null;
+    });
+
+    if (!data) {
+      return NextResponse.json(
+        { error: 'Invalid request body' },
+        { status: 400 }
+      );
+    }
+
+    const { email, password, name } = data;
 
     if (!email || !password || !name) {
       return NextResponse.json(
@@ -39,7 +51,7 @@ export async function POST(request: NextRequest) {
     // Generate JWT token
     const token = signToken({ userId: result.id, email });
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       message: 'User created successfully',
       token,
       user: {
@@ -48,10 +60,17 @@ export async function POST(request: NextRequest) {
         name
       }
     });
+
+    // Set CORS headers
+    response.headers.set('Access-Control-Allow-Origin', '*');
+    response.headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type');
+
+    return response;
   } catch (error) {
     console.error('Signup error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error during signup' },
       { status: 500 }
     );
   }
