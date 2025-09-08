@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
 import { Search, ShoppingCart } from 'lucide-react';
 import Image from 'next/image';
+import Modal from '@/components/Modal';
 
 interface Product {
   id: number;
@@ -27,6 +28,7 @@ export default function HomePage() {
   
   const { user } = useAuth();
   const { addToCart } = useCart();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const filterProducts = useCallback(() => {
     let filtered = products;
@@ -84,15 +86,13 @@ export default function HomePage() {
 
   const handleAddToCart = async (productId: number) => {
     if (!user) {
-      alert('Please login to add items to cart');
+      setIsModalOpen(true);
       return;
     }
 
     const success = await addToCart(productId);
     if (success) {
-      alert('Item added to cart!');
-    } else {
-      alert('Failed to add item to cart');
+      setIsModalOpen(true);
     }
   };
 
@@ -179,6 +179,14 @@ export default function HomePage() {
           </button>
         </div>
       </div>
+
+      {/* Products Grid */}
+      {/* Modal */}
+      <Modal 
+        isOpen={isModalOpen}
+        message={user ? 'Item added to cart!' : 'Please login to add items to cart'}
+        onClose={() => setIsModalOpen(false)}
+      />
 
       {/* Products Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
